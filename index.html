@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Fit‑Autopilot v4.2</title>
+<style>
+:root{--bg:#F4EFE6;--panel:#fff;--border:#E7E1D6;--text:#151515;--muted:#6B6B6B;--accent:#151515;--green:#10B981;--amber:#F59E0B;--red:#EF4444}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Inter,Segoe UI,Roboto,sans-serif}
+.container{max-width:1040px;margin:0 auto;padding:16px}
+.header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px}
+.logo{width:40px;height:40px;border:2px solid var(--accent);border-radius:50%;display:grid;place-items:center;font-weight:700}
+.title{font-weight:700}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}
+.tab{padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:#fff;cursor:pointer}
+.tab.active{background:var(--accent);color:#fff}
+.grid{display:grid;gap:10px}.grid.two{grid-template-columns:1fr 1fr}@media(max-width:720px){.grid.two{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:12px}
+.sectionTitle{font-weight:700;margin-bottom:6px}.muted{color:var(--muted)}.row{display:flex;gap:10px;align-items:center}
+button{padding:10px 12px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.ghost{background:#fff;color:var(--accent);border-color:var(--border)}input,select,textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:#fff}
+.ringWrap{display:grid;place-items:center}.ring{width:180px;height:180px;border-radius:50%;background:conic-gradient(var(--green) calc(var(--pct)*1%), #ddd 0);display:grid;place-items:center;border:10px solid #fff}
+.pct{font-size:26px;font-weight:700}.nn-row{display:flex;justify-content:space-between;align-items:center;padding:8px;border:1px solid var(--border);border-radius:10px;background:#fff}
+.badge{border:1px solid var(--border);padding:3px 8px;border-radius:20px;font-size:12px;background:#fff}.small{font-size:12px}
+.tile{padding:8px;border:1px solid var(--border);border-radius:10px;text-align:center;background:#fff;cursor:pointer}.tile.active{outline:2px solid var(--green)}
+.footer{display:flex;gap:10px;justify-content:center;margin:16px 0 32px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div>
+      <div class="row" style="gap:12px">
+        <div class="logo">FA</div><div class="title">Fit‑Autopilot</div>
+      </div>
+      <div class="muted" style="font-style:italic;margin-top:4px">It’s All Mental.</div>
+    </div>
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-tab="dashboard">Dashboard</div>
+      <div class="tab" data-tab="training">Training</div>
+      <div class="tab" data-tab="macros">Macros</div>
+      <div class="tab" data-tab="coach">Coach</div>
+      <div class="tab" data-tab="integrations">Integrations</div>
+      <div class="tab" data-tab="profile">Profile</div>
+    </div>
+  </div>
+
+  <section id="dashboard" class="grid two">
+    <div class="panel">
+      <div style="text-align:center;margin-bottom:6px;font-weight:700">Wager today: <span id="wagerBadge">$50</span></div>
+      <div class="ringWrap"><div class="ring" id="ring" style="--pct:0"><div class="pct" id="ringPct">0%</div></div></div>
+    </div>
+    <div class="panel">
+      <div class="sectionTitle">Daily Non‑Negotiables</div>
+      <div id="nnList" class="grid"></div>
+    </div>
+    <div class="panel" style="grid-column:1/-1">
+      <div class="sectionTitle">Progress Media</div>
+      <div class="grid two" style="align-items:end">
+        <div><label class="small muted">Daily video required</label><input id="mediaFile" type="file" accept="image/*,video/*"/><div class="small muted" id="mediaStatus">Not uploaded.</div></div>
+        <div class="row" style="justify-content:flex-end"><button class="ghost" id="uploadMedia">Upload</button></div>
+      </div>
+    </div>
+    <div class="panel" style="grid-column:1/-1">
+      <div class="row" style="justify-content:space-between"><div class="muted">Bank the day when all 7 items are green.</div><button id="doneDay">Done for today</button></div>
+    </div>
+  </section>
+
+  <section id="training" class="grid two" style="display:none">
+    <div class="panel">
+      <div class="sectionTitle">Cardio (recommended)</div>
+      <div class="row">
+        <div style="flex:1"><label>Today’s rec (min)</label><input id="cardioRec" type="number" value="15"/></div>
+        <div style="flex:1"><label>Minutes completed</label><input id="cardioDone" type="number" value="0"/></div>
+      </div>
+      <div class="small muted" id="cardioTarget">Target: —</div>
+      <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="ghost" id="saveCardio">Save Cardio</button></div>
+      <div class="small muted" id="cardioStatus">—</div>
+    </div>
+    <div class="panel">
+      <div class="sectionTitle">Gym (8–12 target reps)</div>
+      <div id="exList" class="grid"></div>
+      <div class="row" style="justify-content:flex-end"><button id="addSet" class="ghost">Add set</button></div>
+    </div>
+  </section>
+
+  <section id="macros" class="grid two" style="display:none">
+    <div class="panel">
+      <div class="sectionTitle">Water today</div>
+      <div id="waterTiles" class="grid two"></div>
+      <div class="small muted">Goal: 128 oz (1 gallon)</div>
+    </div>
+    <div class="panel">
+      <div class="sectionTitle">Macros</div>
+      <div class="grid two">
+        <div><label>Protein (g) — auto (1.25×BW)</label><input id="m_p" type="number" readonly/></div>
+        <div><label>Protein today (g)</label><input id="m_p_today" type="number" value="0"/></div>
+        <div><label>Carbs today (g)</label><input id="m_c_today" type="number" value="0"/></div>
+        <div><label>Fats today (g)</label><input id="m_f_today" type="number" value="0"/></div>
+      </div>
+      <div class="grid two">
+        <div><label>No desserts</label><select id="nnDesserts"><option value="" selected disabled>— Select —</option><option value="kept">Kept</option><option value="broke">Broke</option></select></div>
+        <div><label>No sugary drinks</label><select id="nnSugary"><option value="" selected disabled>— Select —</option><option value="kept">Kept</option><option value="broke">Broke</option></select></div>
+        <div><label>No alcohol</label><select id="nnAlcohol"><option value="" selected disabled>— Select —</option><option value="kept">Kept</option><option value="broke">Broke</option></select></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="coach" class="grid" style="display:none">
+    <div class="panel">
+      <div class="sectionTitle">Coach (free mode)</div>
+      <div class="grid"><textarea id="coachQ" placeholder="Ask about training/macros…"></textarea><button class="ghost" id="coachAsk">Ask Coach</button></div>
+      <div class="divider"></div><div id="coachFeed" class="grid"></div>
+    </div>
+  </section>
+
+  <section id="integrations" class="grid two" style="display:none">
+    <div class="panel">
+      <div class="sectionTitle">WHOOP (mock)</div>
+      <div class="grid two">
+        <div><label>Recovery today (%)</label><input id="whoopRec" type="number" value="60"/></div>
+        <div><label>Auto‑adjust</label><select id="autoAdjust"><option value="on">On</option><option value="off">Off</option></select></div>
+      </div>
+      <div class="row" style="margin-top:8px"><button class="ghost" id="applyWhoop">Apply recovery</button></div>
+    </div>
+    <div class="panel">
+      <div class="sectionTitle">Strava (mock)</div>
+      <div class="grid two">
+        <div><label>Status</label><input id="stravaStatus" value="Disconnected" readonly/></div>
+        <div><label>Last sync</label><input id="stravaLast" value="—" readonly/></div>
+      </div>
+      <div class="row" style="gap:8px"><button class="ghost" id="stravaConnect">Connect (simulate)</button><button class="ghost" id="stravaSync">Sync today</button></div>
+      <div class="grid two" style="margin-top:8px">
+        <div><label>Sport</label><select id="stravaSport"><option>Run</option><option>Ride</option><option>Row</option><option>Walk</option></select></div>
+        <div><label>Distance (mi)</label><input id="stravaDist" type="number" step="0.01" value="2.50"/></div>
+        <div><label>Time (min)</label><input id="stravaTime" type="number" value="25"/></div>
+      </div>
+      <div class="row" style="justify-content:flex-end"><button id="stravaAdd" class="ghost">Add simulated activity</button></div>
+      <div class="sectionTitle small">Today’s Strava activities</div>
+      <div id="stravaList" class="grid"></div>
+    </div>
+    <div class="panel" style="grid-column:1/-1">
+      <div class="sectionTitle">Ledger</div><div id="ledgerBox" class="grid"></div>
+    </div>
+  </section>
+
+  <section id="profile" class="grid two" style="display:none">
+    <div class="panel">
+      <div class="sectionTitle">Identity & Settings</div>
+      <div class="grid two">
+        <div><label>Body weight (lb)</label><input id="p_weight" type="number" value="180"/></div>
+        <div><label>Hourly rate ($)</label><input id="p_hourly" type="number" value="20"/></div>
+        <div><label>Base wager (5× hourly)</label><input id="p_wager" type="number" value="100" readonly/></div>
+      </div>
+      <div class="row" style="gap:8px;justify-content:flex-end"><button id="saveProfile">Save Settings</button><button class="ghost" id="factory">Factory Reset</button></div>
+    </div>
+  </section>
+
+  <div class="footer">
+    <button class="ghost" data-nav="dashboard">Dashboard</button>
+    <button class="ghost" data-nav="training">Training</button>
+    <button class="ghost" data-nav="macros">Macros</button>
+    <button class="ghost" data-nav="coach">Coach</button>
+    <button class="ghost" data-nav="integrations">Integrations</button>
+    <button class="ghost" data-nav="profile">Profile</button>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const DB={state:JSON.parse(localStorage.getItem('fa_v4')||'null')||{openedAt:null,profile:{weight:180,hourly:20},wager:100,wagerCurrent:100,water:{oz:0},protein:{target:225,g:0},macros:{p:225,c:0,f:0},nn:{water:false,training:false,media:false,protein:false,noDesserts:null,noSugary:null,noAlcohol:null},cardio:{rec:15,baseRec:15,min:0},gym:{setsLogged:0,exercises:[]},whoop:{recovery:null,autoAdjust:'on'},ledger:[],strava:{connected:false,lastSync:null,activities:[],paceBase:{run_mpm:10}}}};
+function save(){localStorage.setItem('fa_v4',JSON.stringify(DB.state))}
+function show(id){['dashboard','training','macros','coach','integrations','profile'].forEach(k=>$('#'+k).style.display=(k===id?'grid':'none')); $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===id))}
+$$('.tab').forEach(t=>t.onclick=()=>show(t.dataset.tab)); $$('[data-nav]').forEach(b=>b.onclick=()=>show(b.dataset.nav));
+function header(){ $('#wagerBadge').textContent='$'+(DB.state.wagerCurrent||DB.state.wager) }
+function ring(){ const items=[DB.state.nn.water,DB.state.nn.training,DB.state.nn.media,DB.state.nn.protein,DB.state.nn.noDesserts,DB.state.nn.noSugary,DB.state.nn.noAlcohol]; const done=items.filter(Boolean).length; const pct=Math.round(100*done/items.length); $('#ring').style.setProperty('--pct',pct); $('#ringPct').textContent=pct+'%'; }
+function renderNN(){ const list=$('#nnList'); list.innerHTML=''; const nn=[['water','Water (128 oz)'],['training','Training (cardio + gym)'],['media','Progress media uploaded'],['protein',`Protein (≥ ${DB.state.protein.target} g)`],['noDesserts','No desserts'],['noSugary','No sugary drinks'],['noAlcohol','No alcohol']]; nn.forEach(([k,l])=>{ const row=document.createElement('div'); row.className='nn-row'; row.innerHTML=`<div class="row"><span class="badge">${k.toUpperCase().slice(0,2)}</span><div>${l}</div></div><div>${(['noDesserts','noSugary','noAlcohol'].includes(k))?(DB.state.nn[k]===true?'<span style="color:#10B981">✔ Kept</span>':(DB.state.nn[k]===false?'<span style="color:#EF4444">Broke</span>':'<span class="small muted">Not set (Macros)</span>')):(DB.state.nn[k]?'✔':'—')}</div>`; list.appendChild(row) }) }
+$('#uploadMedia').onclick=()=>{ const f=$('#mediaFile').files[0]; if(!f){alert('Pick a file'); return;} DB.state.media={uploaded:true,at:new Date().toISOString()}; DB.state.nn.media=true; $('#mediaStatus').textContent='Uploaded (dev mode)'; save(); renderNN(); ring() };
+function renderWater(){ const wrap=$('#waterTiles'); wrap.innerHTML=''; const per=16; for(let i=0;i<8;i++){ const t=document.createElement('div'); t.className='tile'; const filled=DB.state.water.oz>=(i+1)*per; if(filled) t.classList.add('active'); t.innerHTML=`<div class="small">${per} oz</div>`; t.onclick=()=>{ DB.state.water.oz=Math.max(0,Math.min(128,(i+1)*per)); DB.state.nn.water=DB.state.water.oz>=128; save(); renderWater(); renderNN(); ring(); }; wrap.appendChild(t)} }
+function renderMacros(){ $('#m_p').value=DB.state.protein.target; $('#m_p_today').value=DB.state.protein.g||0; $('#m_c_today').value=DB.state.macros.c||0; $('#m_f_today').value=DB.state.macros.f||0 }
+$('#m_p_today').oninput=()=>{ DB.state.protein.g=parseInt($('#m_p_today').value||'0'); DB.state.nn.protein=(DB.state.protein.g||0)>=DB.state.protein.target; save(); renderNN(); ring() };
+$('#m_c_today').oninput=()=>{ DB.state.macros.c=parseInt($('#m_c_today').value||'0'); save() };
+$('#m_f_today').oninput=()=>{ DB.state.macros.f=parseInt($('#m_f_today').value||'0'); save() };
+['nnDesserts','nnSugary','nnAlcohol'].forEach(id=>{ const el=document.getElementById(id); el.onchange=()=>{ const map={nnDesserts:'noDesserts',nnSugary:'noSugary',nnAlcohol:'noAlcohol'}; DB.state.nn[map[id]]=(el.value==='kept'?true:(el.value==='broke'?false:null)); save(); renderNN(); ring() } });
+function initExercises(){ if(!DB.state.gym.exercises.length) DB.state.gym.exercises=[{name:'Incline DB Press',last:{weight:50,reps:10}},{name:'Lat Pulldown (neutral)',last:{weight:120,reps:12}},{name:'DB Lateral Raise',last:{weight:15,reps:14}},{name:'Hack Squat',last:{weight:180,reps:10}}] }
+function recommend(ex){ let w=ex.last?.weight||0, r=ex.last?.reps||8; const s=ex.lastSurvey||{soreness:3,pump:3,joint:3}; if(s.pump>=4 && s.joint<=2) { w+=5; r=Math.min(15,r+1);} if(s.joint>=4){ w=Math.max(0,w-5); r=Math.max(5,r-1);} return {weight:w,reps:r} }
+function renderExercises(){ initExercises(); const box=$('#exList'); box.innerHTML=''; DB.state.gym.exercises.forEach((ex,i)=>{ const rec=recommend(ex); const el=document.createElement('div'); el.className='panel'; el.innerHTML=`<div class="row" style="justify-content:space-between"><div class="sectionTitle">${ex.name}</div><div class="small muted">8–12 reps</div></div><div class="grid two"><div><label>Weight</label><input type="number" id="w_${i}" placeholder="${rec.weight}"/></div><div><label>Reps</label><input type="number" id="r_${i}" placeholder="${rec.reps}"/></div></div><div class="row" style="justify-content:flex-end;margin-top:6px"><button class="ghost" data-save="${i}">Log set</button></div>`; box.appendChild(el)}); $$('button[data-save]').forEach(b=> b.onclick=()=>{ const i=parseInt(b.dataset.save); const w=parseFloat($('#w_'+i).value||$('#w_'+i).placeholder||'0'); const r=parseInt($('#r_'+i).value||$('#r_'+i).placeholder||'0'); DB.state.gym.exercises[i].last={weight:w,reps:r}; DB.state.gym.setsLogged=(DB.state.gym.setsLogged||0)+1; DB.state.nn.training=(DB.state.cardio.min>=DB.state.cardio.rec)&&(DB.state.gym.setsLogged>0); save(); ring(); renderNN(); cardioStatus() }) }
+$('#addSet').onclick=()=>{ DB.state.gym.exercises.push({name:'Custom exercise',last:{weight:0,reps:8}}); renderExercises() };
+function cardioStatus(){ $('#cardioRec').value=DB.state.cardio.rec; $('#cardioDone').value=DB.state.cardio.min; const ok=DB.state.cardio.min>=DB.state.cardio.rec; $('#cardioStatus').textContent=ok?'✓ Cardio target met':'— Cardio pending'; DB.state.nn.training=ok&&(DB.state.gym.setsLogged>0) }
+$('#saveCardio').onclick=()=>{ DB.state.cardio.rec=parseInt($('#cardioRec').value||'0'); DB.state.cardio.min=parseInt($('#cardioDone').value||'0'); save(); cardioStatus(); renderNN(); ring() };
+$('#applyWhoop').onclick=()=>{ const rec=parseInt($('#whoopRec').value||'60'); DB.state.cardio.rec=DB.state.cardio.baseRec||15; if(rec<40) DB.state.cardio.rec=Math.max(5,Math.round(DB.state.cardio.rec*0.8)); if(rec>70) DB.state.cardio.rec+=10; save(); cardioStatus(); renderNN(); ring() };
+$('#coachAsk').onclick=()=>{ const q=($('#coachQ').value||'').trim(); if(!q) return; const box=$('#coachFeed'); const you=document.createElement('div'); you.className='panel'; you.innerHTML='<div class="sectionTitle">You</div><div class="small muted">'+q+'</div>'; box.prepend(you); const a=/protein|macro/i.test(q)?'Protein ≥ target. If fat loss stalls 7d, carbs −10% before more cardio.':(/sore|joint|pain/i.test(q)?'Joint pain high? −5–10% load next time, cap reps at 8–10, consider deload.':'Hit protein, meet Z2 cardio, +2.5–5 lb if you hit 12 reps clean.'); const coach=document.createElement('div'); coach.className='panel'; coach.innerHTML='<div class="sectionTitle">Coach</div><div class="small muted">'+a+'</div>'; box.prepend(coach); $('#coachQ').value='' };
+$('#saveProfile').onclick=()=>{ DB.state.profile.weight=parseFloat($('#p_weight').value||'180'); DB.state.protein.target=Math.round(1.25*(DB.state.profile.weight||0)); DB.state.macros.p=DB.state.protein.target; DB.state.profile.hourly=parseFloat($('#p_hourly').value||'20'); DB.state.wager=Math.round(DB.state.profile.hourly*5); if(!DB.state.wagerCurrent) DB.state.wagerCurrent=DB.state.wager; $('#p_wager').value=DB.state.wager; save(); renderMacros(); renderNN(); ring(); header() };
+$('#factory').onclick=()=>{ localStorage.removeItem('fa_v4'); location.reload() };
+function openDay(){ const today=new Date().toISOString().slice(0,10); DB.state.openedAt=today; DB.state.water.oz=0; DB.state.nn.water=false; DB.state.nn.media=false; DB.state.cardio.min=0; DB.state.gym.setsLogged=0; DB.state.nn.training=false; DB.state.protein.g=0; DB.state.nn.protein=false; DB.state.nn.noDesserts=null; DB.state.nn.noSugary=null; DB.state.nn.noAlcohol=null; save(); renderWater(); renderNN(); ring(); header() }
+function openDayIfNeeded(){ const today=new Date().toISOString().slice(0,10); if(DB.state.openedAt!==today) openDay() }
+$('#doneDay').onclick=()=>{ const keys=['water','training','media','protein','noDesserts','noSugary','noAlcohol']; const all=keys.every(k=>DB.state.nn[k]); const today=new Date().toISOString().slice(0,10); if(!all){ const reason=keys.filter(k=>!DB.state.nn[k]).join(', '); DB.state.ledger.push({date:today,result:'forfeit',reason,amount:DB.state.wagerCurrent}); DB.state.wagerCurrent*=2; save(); renderLedger(); header(); alert('Forfeit recorded.'); return } DB.state.ledger.push({date:today,result:'banked'}); save(); renderLedger(); alert('Banked. Good work!') };
+function renderLedger(){ const box=$('#ledgerBox'); if(!box) return; box.innerHTML=''; (DB.state.ledger||[]).slice(-14).reverse().forEach(e=>{ const row=document.createElement('div'); row.className='row'; row.style.justifyContent='space-between'; row.innerHTML=`<span class="small muted">${e.date}</span><span>${e.result==='banked'?'✔ Banked':'✖ Forfeit'} ${e.amount?('· $'+e.amount):''} ${e.reason?('· '+e.reason):''}</span>`; box.appendChild(row) }) }
+function boot(){ openDayIfNeeded(); DB.state.protein.target=Math.round(1.25*(DB.state.profile.weight||180)); DB.state.macros.p=DB.state.protein.target; DB.state.wager=Math.round((DB.state.profile.hourly||20)*5); if(!DB.state.wagerCurrent) DB.state.wagerCurrent=DB.state.wager; header(); renderWater(); renderMacros(); renderNN(); ring(); cardioStatus(); renderExercises(); renderLedger() } boot();
+</script>
+</body>
+</html>
